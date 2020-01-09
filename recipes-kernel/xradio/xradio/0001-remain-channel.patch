@@ -1,0 +1,26 @@
+diff --git a/sta.c b/sta.c
+index 7367de6..8928b16 100644
+--- a/sta.c
++++ b/sta.c
+@@ -973,7 +973,7 @@ int xradio_remain_on_channel(struct ieee80211_hw *hw,
+ 	return ret;
+ }
+ 
+-int xradio_cancel_remain_on_channel(struct ieee80211_hw *hw)
++int xradio_cancel_remain_on_channel(struct ieee80211_hw *hw, struct ieee80211_vif *vif)
+ {
+ 	struct xradio_common *hw_priv = hw->priv;
+ 
+diff --git a/sta.h b/sta.h
+index cd46eef..1a935ea 100644
+--- a/sta.h
++++ b/sta.h
+@@ -64,7 +64,7 @@ int xradio_remain_on_channel(struct ieee80211_hw *hw,
+ 			     struct ieee80211_vif *vif,
+                              struct ieee80211_channel *chan,
+                              int duration, enum ieee80211_roc_type type);
+-int xradio_cancel_remain_on_channel(struct ieee80211_hw *hw);
++int xradio_cancel_remain_on_channel(struct ieee80211_hw *hw, struct ieee80211_vif *vif);
+ int xradio_set_arpreply(struct ieee80211_hw *hw, struct ieee80211_vif *vif);
+ u64 xradio_prepare_multicast(struct ieee80211_hw *hw,
+                              struct netdev_hw_addr_list *mc_list);

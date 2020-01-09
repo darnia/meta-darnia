@@ -1,0 +1,14 @@
+diff --git a/drivers/net/usb/r8152.c b/drivers/net/usb/r8152.c
+index b2507c59ba8b..95275d18b999 100644
+--- a/drivers/net/usb/r8152.c
++++ b/drivers/net/usb/r8152.c
+@@ -4338,6 +4338,9 @@ static void r8152b_init(struct r8152 *tp)
+ 		ocp_data &= ~LED_MODE_MASK;
+ 		ocp_write_word(tp, MCU_TYPE_PLA, PLA_LED_FEATURE, ocp_data);
+ 	}
++	//ocp_data = ocp_read_word(tp, MCU_TYPE_PLA, PLA_LEDSEL);
++	//netif_info(tp, probe, tp->netdev, "r8152b led setup: 0x%04x", ocp_data);
++	ocp_write_word(tp, MCU_TYPE_PLA, PLA_LEDSEL, 0x00B7);
+ 
+ 	r8152_power_cut_en(tp, false);
+ 

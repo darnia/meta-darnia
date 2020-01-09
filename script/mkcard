@@ -1,0 +1,151 @@
+#!/bin/bash
+#
+# Copy image to SD card
+# and resize all ext4 filesystems
+#
+# Author: Lasse K. Mikkelsen
+#
+
+REQ_PROGRAMS=(gunzip grep umount dd parted resize2fs e2fsck sync lsblk)
+
+DEVICE=
+BMAPTOOL=/usr/bin/bmaptool
+FORCE_DD=""
+declare -a DEVICE_LIST
+declare -a OPTION_LIST
+declare -a PARTION_LIST
+
+find_sd_cards() {
+	local NEW_DEV=n
+	IFS=:
+	while read COL1 COL2 COL3 COL4 COL5 COL6 COL7 ; do
+		#echo "$COL1 $COL2 $COL3 $COL4 $COL5 $COL6 $COL7"
+		if [ "$COL1" = "BYT;" ]; then
+			NEW_DEV=y
+			continue
+		elif [ "$NEW_DEV" = "y" ]; then
+			if [ "$COL3" = "sd/mmc" ]; then
+				DEVICE_LIST+=("$COL1")
+				OPTION_LIST+=("$COL7 (Size: $COL2) (Device: $COL1)")
+			fi
+		fi
+		NEW_DEV=n
+	done <<<$(sudo parted -s -m -l 2>/dev/null)
+}
+
+find_usb_sticks() {
+	IFS=' '
+	while read COL1 COL2 COL3 COL4 COL5; do
+		if [ -z "$COL1" ]; then
+			continue
+		fi
+		DEVICE_LIST+=("/dev/$COL1")
+		OPTION_LIST+=("$COL3 $COL4 (Size: $COL2) (Device: $COL1)")
+	done <<<$(lsblk -o NAME,SIZE,VENDOR,MODEL,TRAN | grep "usb$" 2>/dev/null)
+}
+
+get_partitions() {
+	IFS=:
+	while read PART START END SIZE FS_TYPE COL6 COL7 ; do
+		if [ "$FS_TYPE" = "ext4" ]; then
+			PARTION_LIST+=("$PART")
+		fi
+	done <<<$(sudo parted -s -m "$1" print 2>/dev/null)
+}
+
+# Check if all required programs are installed
+for PRG in "${REQ_PROGRAMS[@]}"; do
+	# the posix way
+	command -v $PRG >/dev/null
+	if [ $? -ne 0 ]; then
+		echo "Required program $PRG is not found." >&2
+		exit 1
+	fi
+done
+
+if [ $# -eq 0 ]; then
+	echo "Usage: mkcard <wic image> [device]"
+	exit 2
+fi
+
+while getopts ":f" opt; do
+  case ${opt} in
+    f ) 
+	FORCE_DD="y"
+      ;;
+    \? ) echo "Usage: mkcard [-f] <wic image file>"
+	exit
+      ;;
+  esac
+done
+shift $((OPTIND -1))
+
+SD_IMAGE=$1
+
+if [ $# -gt 1 ]; then
+	DEVICE=$2
+else
+	find_sd_cards
+	sleep 0.5
+	find_usb_sticks
+
+	select OPT in "${OPTION_LIST[@]}" "Quit"; do
+		case "$REPLY" in
+			[1-${#OPTION_LIST[@]}] ) DEVICE="${DEVICE_LIST[$(($REPLY - 1))]}"; break;;
+			$(( ${#OPTION_LIST[@]}+1 )) ) echo "Goodbye!"; exit 0;;
+			*) echo "Invalid option. Try another one.";continue;;
+		esac
+	done
+fi
+
+if [ ! -b $DEVICE ]; then
+	echo "$DEVICE not a block device" >&2
+	exit 1
+fi
+
+OUTPUT=`lsblk -n -l -o NAME $DEVICE`
+if [ $? -eq 0 ]; then
+	IFS=$'\n'
+	for MOUNT in $OUTPUT; do
+		sudo umount /dev/$MOUNT >/dev/null 2>&1
+	done	
+fi
+
+echo "Copy SD image to card: $DEVICE"
+if [ -x $BMAPTOOL -a -z "$FORCE_DD" ]; then
+	sudo $BMAPTOOL copy "$SD_IMAGE" "$DEVICE"
+else
+	sudo dd of="$DEVICE" if="$SD_IMAGE" bs=1M iflag=fullblock oflag=direct conv=fsync status=progress
+	#gunzip -c "$SD_IMAGE" | sudo dd of="$DEVICE" bs=1M iflag=fullblock oflag=direct conv=fsync status=progress
+fi
+
+get_partitions "$DEVICE"
+
+INDEX=0
+while [ $INDEX -lt ${#PARTION_LIST[@]} ]; do
+	PART=${PARTION_LIST[$INDEX]}
+	DEVICE_PART="${DEVICE}p${PART}"
+	if [ ! -b "$DEVICE_PART" ]; then
+		DEVICE_PART="${DEVICE}${PART}"
+	fi
+	if [ -b "$DEVICE_PART" ]; then
+		sudo e2fsck -f -p "${DEVICE_PART}" >/dev/null
+		if [ $? -ne 0 ]; then
+			echo "Failed to check filesystem: ${DEVICE_PART}" >&2
+			exit 4
+		fi
+		if [ $INDEX -eq $((${#PARTION_LIST[@]} - 1)) ]; then
+			echo "Resizing partition on $DEVICE_PART to use 100%"
+			sudo parted -s $DEVICE resizepart $PART '100%'
+		fi
+		echo "Resize filesystem ${DEVICE_PART}"
+		sudo resize2fs -F "${DEVICE_PART}" >/dev/null
+		if [ $? -ne 0 ]; then
+			echo "Failed to resize filesystem on ${DEVICE_PART}" >&2
+			exit 5
+		fi
+	fi
+	let INDEX=INDEX+1
+done
+sync
+echo "Done"

@@ -1,0 +1,25 @@
+diff --git a/Makefile b/Makefile
+index cc4de67..dc8b7f9 100755
+--- a/Makefile
++++ b/Makefile
+@@ -2,16 +2,12 @@ obj-m += soft_uart.o
+ 
+ soft_uart-objs := module.o raspberry_soft_uart.o queue.o
+ 
+-RELEASE = $(shell uname -r)
+-LINUX = /usr/src/linux-headers-$(RELEASE)
+-
+ all:
+-	$(MAKE) -C $(LINUX) M=$(PWD) modules
++	$(MAKE) -C $(KERNEL_SRC) M=$(PWD) modules
+ 
+ clean:
+-	$(MAKE) -C $(LINUX) M=$(PWD) clean
++	$(MAKE) -C $(KERNEL_SRC) M=$(PWD) clean
+ 
+-install:
+-	sudo install -m 644 -c soft_uart.ko /lib/modules/$(RELEASE)
+-	sudo depmod
++modules_install:
++	$(MAKE) -C $(KERNEL_SRC) M=$(PWD) modules_install
+ 
