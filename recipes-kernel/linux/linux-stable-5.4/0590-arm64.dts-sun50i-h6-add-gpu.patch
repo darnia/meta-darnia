@@ -1,0 +1,44 @@
+--- a/arch/arm64/boot/dts/allwinner/sun50i-h6-tanix-tx6.dts	2020-01-26 21:07:05.833466340 +0000
++++ b/arch/arm64/boot/dts/allwinner/sun50i-h6-tanix-tx6.dts	2020-01-26 21:06:39.993464685 +0000
+@@ -34,12 +34,29 @@
+ 		};
+ 	};
+ 
++	reg_ddc: ddc-io {
++		compatible = "regulator-fixed";
++		regulator-name = "ddc-io";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		enable-active-high;
++		gpio = <&pio 7 2 GPIO_ACTIVE_HIGH>; /* PH2 */
++	};
++
+ 	reg_vcc3v3: vcc3v3 {
+ 		compatible = "regulator-fixed";
+ 		regulator-name = "vcc3v3";
+ 		regulator-min-microvolt = <3300000>;
+ 		regulator-max-microvolt = <3300000>;
+ 	};
++
++	reg_dcdcc: dcdcc {
++		compatible = "regulator-fixed";
++		regulator-name = "vdd-gpu";
++		regulator-min-microvolt = <1080000>;
++		regulator-max-microvolt = <1080000>;
++		regulator-always-on;
++	};
+ };
+ 
+ &de {
+@@ -50,6 +67,11 @@
+ 	status = "okay";
+ };
+ 
++&gpu {
++	mali-supply = <&reg_dcdcc>;
++	status = "okay";
++};
++
+ &ehci0 {
+ 	status = "okay";
+ };

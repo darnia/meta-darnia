@@ -1,12 +1,10 @@
-SUMMARY = "Xradio WiFi driver for orangepi-zero"
+SUMMARY = "Xradio WiFi driver"
 LICENSE = "GPLv2"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=a23a74b3f4caf9616230789d94217acb"
 
 inherit module
 
 RDEPENDS_${PN} += "xradio-firmware"
-
-COMPATIBLE_MACHINE = "(opi0)"
 
 PV = "git${SRCPV}"
 

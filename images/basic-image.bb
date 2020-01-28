@@ -67,10 +67,10 @@ TOOLS_PKGS = " \
 IMAGE_INSTALL += " \
     ${CORE_OS} \
     ${CONN_PKGS} \
+    ${TOOLS_PKGS} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'bluetooth', '${BLUETOOTH_SUPPORT}', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'wifi', '${WIFI_SUPPORT}', '', d)} \
 "
-#    ${TOOLS_PKGS} 
 
 IMAGE_INSTALL_rpi += " \
     udev-rules-rpi \

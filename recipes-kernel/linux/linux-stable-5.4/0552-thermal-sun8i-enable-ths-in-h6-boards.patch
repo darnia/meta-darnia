@@ -1,0 +1,22 @@
+diff -Naur linux-5.3-rc7-old/arch/arm64/boot/dts/allwinner/sun50i-h6-beelink-gs1.dts linux-5.3-rc7-new/arch/arm64/boot/dts/allwinner/sun50i-h6-beelink-gs1.dts
+--- linux-5.3-rc7-old/arch/arm64/boot/dts/allwinner/sun50i-h6-beelink-gs1.dts	2019-09-06 16:53:47.263333340 +0200
++++ linux-5.3-rc7-new/arch/arm64/boot/dts/allwinner/sun50i-h6-beelink-gs1.dts	2019-09-06 16:58:42.376666656 +0200
+@@ -291,3 +291,7 @@
+ 		vbus-supply = <&reg_vcc5v>;
+ 	};
+ };
++
++&ths {
++	status = "okay";
++};
+diff -Naur linux-5.3-rc7-old/arch/arm64/boot/dts/allwinner/sun50i-h6-tanix-tx6.dts linux-5.3-rc7-new/arch/arm64/boot/dts/allwinner/sun50i-h6-tanix-tx6.dts
+--- linux-5.3-rc7-old/arch/arm64/boot/dts/allwinner/sun50i-h6-tanix-tx6.dts	2019-09-06 16:53:47.403333341 +0200
++++ linux-5.3-rc7-new/arch/arm64/boot/dts/allwinner/sun50i-h6-tanix-tx6.dts	2019-09-06 16:59:19.136666663 +0200
+@@ -142,3 +142,7 @@
+ &usb3phy {
+ 	status = "okay";
+ };
++
++&ths {
++	status = "okay";
++};

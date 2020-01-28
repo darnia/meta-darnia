@@ -6,8 +6,6 @@ PV = "git${SRCPV}"
 
 SRCREV = "7675374aab144c3720b39dce47471c685b5d62f4"
 
-COMPATIBLE_MACHINE = "opi0"
-
 SRC_URI = "git://github.com/armbian/firmware.git;protocol=https"
 
 S = "${WORKDIR}/git"

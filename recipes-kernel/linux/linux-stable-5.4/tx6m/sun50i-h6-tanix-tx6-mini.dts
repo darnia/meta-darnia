@@ -1,0 +1,223 @@
+// SPDX-License-Identifier: (GPL-2.0+ or MIT)
+/*
+ * Copyright (c) 2019 Jernej Skrabec <jernej.skrabec@siol.net>
+ */
+
+/dts-v1/;
+
+#include "sun50i-h6.dtsi"
+
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+	model = "Tanix TX6i mini";
+	compatible = "oranth,tanix-tx6-mini", "allwinner,sun50i-h6";
+
+	aliases {
+		serial0 = &uart0;
+		ethernet0 = &emac;
+	};
+
+	chosen {
+		stdout-path = "serial0:115200n8";
+	};
+
+	connector {
+		compatible = "hdmi-connector";
+		ddc-en-gpios = <&pio 7 2 GPIO_ACTIVE_HIGH>; /* PH2 */
+		type = "a";
+		ddc-supply = <&reg_ddc>;
+
+		port {
+			hdmi_con_in: endpoint {
+				remote-endpoint = <&hdmi_out_con>;
+			};
+		};
+	};
+
+	reg_ddc: ddc-io {
+		compatible = "regulator-fixed";
+		regulator-name = "ddc-io";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		enable-active-high;
+		gpio = <&pio 7 2 GPIO_ACTIVE_HIGH>; /* PH2 */
+	};
+
+	reg_vcc3v3: vcc3v3 {
+		compatible = "regulator-fixed";
+		regulator-name = "vcc3v3";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+	};
+
+	reg_dcdcc: dcdcc {
+		compatible = "regulator-fixed";
+		regulator-name = "vdd-gpu";
+		regulator-min-microvolt = <1080000>;
+		regulator-max-microvolt = <1080000>;
+		regulator-always-on;
+	};
+
+/*
+	vdd_wifi: vdd_wifi {
+ 		compatible = "regulator-fixed";
+		regulator-name = "wifi";
+		regulator-min-microvolt = <1800000>;
+		regulator-max-microvolt = <1800000>;
+ 	};
+
+	pwrseq_wifi: pwrseq_wifi {
+		compatible = "mmc-pwrseq-simple";
+		pinctrl-names = "default";
+		pinctrl-0 = <&wifi_rst>;
+		post-power-on-delay-ms = <200>;
+	};
+*/
+};
+
+&de {
+	status = "okay";
+};
+
+&ac200_pwm_clk {
+	status = "okay";
+};
+
+&gpu {
+	mali-supply = <&reg_dcdcc>;
+	status = "okay";
+};
+
+&ehci0 {
+	status = "okay";
+};
+
+&ehci3 {
+	status = "okay";
+};
+
+&dwc3 {
+	status = "okay";
+};
+
+&hdmi {
+	status = "okay";
+};
+
+&hdmi_out {
+	hdmi_out_con: endpoint {
+		remote-endpoint = <&hdmi_con_in>;
+	};
+};
+
+&i2c3 {
+	status = "okay";
+};
+
+&mdio {
+	ext_rmii_phy: ethernet-phy@1 {
+		compatible = "ethernet-phy-ieee802.3-c22";
+		reg = <1>;
+	};
+};
+
+&emac {
+	pinctrl-names = "default";
+	pinctrl-0 = <&ext_rmii_pins>;
+	phy-mode = "rmii";
+	phy-handle = <&ext_rmii_phy>;
+	status = "okay";
+};
+
+&mmc0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&mmc0_pins>;
+	vmmc-supply = <&reg_vcc3v3>;
+	cd-gpios = <&pio 5 6 GPIO_ACTIVE_LOW>; /* PF6 */
+	bus-width = <4>;
+	status = "okay";
+};
+
+&mmc2 {
+	vmmc-supply = <&reg_vcc3v3>;
+	non-removable;
+	cap-mmc-hw-reset;
+	bus-width = <8>;
+	status = "okay";
+};
+
+/*
+&mmc1 {
+	vmmc-supply = <&reg_vcc3v3>;
+	vqmmc-supply = <&vdd_wifi>;
+	mmc-pwrseq = <&pwrseq_wifi>;
+	bus-width = <4>;
+	max-frequency = <16000000>;
+	non-removable;
+	status = "okay";
+*/
+	/*
+	 * Explicitly define the sdio device, so that we can add an ethernet
+	 * alias for it (which e.g. makes u-boot set a mac-address).
+	 */
+/*
+	xr819: sdio_wifi@1 {
+		reg = <1>;
+		compatible = "xradio,xr819";
+		pinctrl-names = "default";
+		pinctrl-0 = <&wifi_wake>;
+	};
+};
+*/
+
+&pwm {
+	status = "okay";
+};
+
+&ohci0 {
+	status = "okay";
+};
+
+&ohci3 {
+	status = "okay";
+};
+
+&r_ir {
+	status = "okay";
+};
+
+&uart0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&uart0_ph_pins>;
+	status = "okay";
+};
+
+&usb2otg {
+	dr_mode = "host";
+	status = "okay";
+};
+
+&usb2phy {
+	status = "okay";
+};
+
+/*
+&r_pio {
+	wifi_wake: wifi_wake {
+		pins = "PM0";
+		function = "gpio_in";
+    	};
+};
+
+&r_pio {
+	wifi_rst: wifi_rst {
+		pins = "PM4";
+		function = "gpio_out";
+    	};
+};
+*/
+&usb3phy {
+	status = "okay";
+};
+
